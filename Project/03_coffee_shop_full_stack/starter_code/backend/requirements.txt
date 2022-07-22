@@ -19,5 +19,4 @@ Werkzeug==2.1.2
 wrapt==1.11.1
 Flask-Cors==3.0.8
 wheel==0.37.1
-jose==1.0.0
-#python-jose==3.3.0
+python-jose==3.3.0
