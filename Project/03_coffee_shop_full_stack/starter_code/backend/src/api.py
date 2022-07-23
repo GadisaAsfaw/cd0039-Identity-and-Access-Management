@@ -17,7 +17,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this funciton will add one
 '''
-# db_drop_and_create_all()
+#db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -37,7 +37,8 @@ def get_all_drinks():
         "drinks":drinks
         }
 @app.route('/drinks-detail', methods=['GET'])
-def get_all_drinks_detail():
+@requires_auth('get:drinks-detail')
+def get_all_drinks_detail(jwt):
     selection = Drink.query.order_by(Drink.id).all()
     drinks = [drink.long() for drink in selection]
     return {
@@ -54,6 +55,7 @@ def get_all_drinks_detail():
         or appropriate status code indicating reason for failure
 '''
 @app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
 def add_new_drink():
     body  = request.get_json()
     title = body.get('title',None)
@@ -84,6 +86,7 @@ def add_new_drink():
 
 
 @app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
 def update_drink(id):
     body  = request.get_json()
     title = body.get('title',None)
@@ -115,6 +118,7 @@ def update_drink(id):
         or appropriate status code indicating reason for failure
 '''
 @app.route('/drinks/<int:id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
 def delete_drink(id):
     try:
         drink = Drink.query.filter(Drink.id == id).one_or_none()
@@ -155,6 +159,31 @@ def unprocessable(error):
     }), 422
 
 
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
+
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": "internal server error"
+        }), 500
+
+@app.errorhandler(AuthError)
+def handle_auth_error(error):
+
+    return jsonify({
+        "success": False,
+        "error": error.status_code ,
+        "message": error.error["description"]
+    }), error.status_code 
+
 '''
 @TODO implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
@@ -165,6 +194,7 @@ def unprocessable(error):
                     }), 404
 
 '''
+
 
 '''
 @TODO implement error handler for 404
